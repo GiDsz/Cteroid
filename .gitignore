@@ -1,0 +1,13 @@
+/.antlr
+/.vscode
+/c.lisp
+/ct.h
+/Ct.interp
+/ct.ir
+/ct.lisp
+/ct.pl
+/Ct.tokens
+/ctc
+/ctc.go
+/ctc.py
+/CtLexer.interp

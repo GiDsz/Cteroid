@@ -1,0 +1,38 @@
+lib vec:
+(
+    type vec
+    fn New
+)
+{
+    type vec<a>: (len: size, cap: size, data: ${null: (), val: [len]a, mem: [cap]a})
+
+    fn New<'a>: (cap: size) -> {
+					           	   res: vec<'a>
+					           	   outOfMemory: ()
+					           }
+    {
+        .res <- (.len <- 0, .cap <- cap, .data <- {.null <- ()}?$)?
+    }
+
+//	fn New<'a>: (cap: size) -> {
+//					           	   res: vec<'a>
+//					           	   outOfMemory: ()
+//					           }
+//  {
+//		var data: {val: {null: (), val: [len]a, mem: [cap]a}, outOfMemory: ()} <- {.null <- ()}
+//		match data
+//		{
+//		val: 
+//			var res: {val: vec<'a>, outOfMemory: ()} <- (.len <- 0, .cap <- cap, .data <- data$)
+//			match res
+//			{
+//				val:
+//					.res <- res.val
+//				outOfMemory:
+//					.outOfMemory <- res.outOfMemory
+//			}
+//		outOfMemory:
+//			.outOfMemory <- data.outOfMemory
+//		}
+//  }
+}
