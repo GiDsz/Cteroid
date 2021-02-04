@@ -211,6 +211,9 @@ astSimplify(AST, ResAST) :-
 
 		astSimplify(AST1, ResAST)
 	);
+
+	%add match access to field
+
 	astNthNode(AST, Loc, [expr, Info, Prim, Opers|_]) ->
 	(
 		append(_, [Pos, _], Loc),
@@ -218,7 +221,15 @@ astSimplify(AST, ResAST) :-
 		(
 			Prim = [path, PathInfo, LibName, Name|_] ->
 			(
-				astInsertNode(AST, Pos, [copy, Info1, Temp, Expr1], AST1)
+				astNthNode(AST, ItemLoc, [func, ItemInfo, true, LibName, Name, _, Type|_]) ->
+				(
+					
+				);
+				astNthNode(AST, ItemLoc, [globVar, ItemInfo, true, LibName, Name, _, Type|_]) ->
+				(
+
+				)
+				%astInsertNode(AST, Pos, [copy, Info1, Temp, Expr1], AST1)
 			);
 		)
 

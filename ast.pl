@@ -15,4 +15,6 @@ if, Info, Cond, Stmts, ElseStmts or [[]]
 while, Info, Arg, Stmts
 drop, Info, SrcName
 
-typeOf, Info, Expr
+type, Info, IsExported, LibName, Name, Placehldrs, Type 
+func, Info, IsExported, LibName, Name, Params, Type, Body
+globVar, Info, IsExported, LibName, Name, Type, Stmts
