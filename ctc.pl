@@ -2,12 +2,373 @@
 resVarName('__res__').
 validReturnFieldName(res).
 stackOverflowErrFieldName(stackOverflow).
+outOfMemoryErrFieldName(outOfMemory).
 indexOutOfBoundsErrFieldName(indexOutOfBounds).
 accessingInactiveUnionMemberErrFieldName(accessingInactiveUnionMember).
 
 nextIndex(Name, Index) :- 
 	index(Name, PrevIndex), retract(index(Name, PrevIndex)), Index is PrevIndex + 1, assert(index(Name, Index));
 	assert(index(Name, 0)), Index is 0.
+
+desugarFile(File, ResFile) :- maplist(desugarLib, File, ResFile).
+
+desugarLib(Lib, ResLib) :- 
+	Lib = [lib_def, Name|RestLib]
+	maplist(desugarLibDef, RestLib, ResLib).
+
+desugarLibDef(Arg, Res) :- 
+	Arg = [fn_def, Name, Annot, Type, [fn_body|Rest], []] -> 
+	(
+		desugarStmts(Rest, ResBody),
+		append([fn_body], ResBody, Body),
+		Res = [fn_def, Name, Annot, Type, Body, []]
+	);
+	Arg = [fn_def, Name, Type, [fn_body|Rest], []] -> 
+	(
+		desugarStmts(Rest, ResBody),
+		append([fn_body], ResBody, Body),
+		Res = [fn_def, Name, Type, Body, []]
+	);
+	Arg = Res.
+
+desugarStmts([[]], [[]]).
+desugarStmts([Hd|Tl], Res1) :- 
+(
+	Hd = [local_var_def, Name, Type, 'LEFT_MOVE', Expr, []] ->
+	(
+		desugarExpr(Expr, ResStmts, Result),
+		append(ResStmts, [[local_var_def, Name, Type, 'LEFT_MOVE', [Result, []], []]], Res),
+
+		desugarStmts(Tl, Rest),
+		append(Res, Rest, Res1)
+	);
+	Hd = [local_var_def, Name, Type, 'LEFT_COPY', Expr, []] ->
+	(
+		desugarExpr(Expr, ResStmts, Result),
+		append(ResStmts, [[local_var_def, Name, Type, 'LEFT_COPY', [Result, []], []]], Res),
+
+		desugarStmts(Tl, Rest),
+		append(Res, Rest, Res1)
+	);
+	Hd = [local_var_def, Name, Type, 'LEFT_COPY', handle, Expr, []] ->
+	(
+		desugarExpr(Expr, ResStmts, Result),
+		
+		desugarStmts(Tl, Rest),
+		validReturnFieldName(Name2).
+		append([[local_var_def, Name, Type, 'LEFT_COPY', [Result, [field_select, Name2, []], []], []]], Rest, Stmts),
+		outOfMemoryErrFieldName(Name1),
+		append(ResStmts, [[match_stmt, [Result, []], [case, Name1, [res_stmt, [field_select, Name1, []], 'LEFT_MOVE', [unit_const, []], []], []], [case, Stmts], []]], Res1)
+	);
+	Hd = [cmp_stmt|Stmts] ->
+	(
+		desugarStmts(Stmts, ResStmts),
+
+		Res = [cmp_stmt|ResStmts],
+
+		desugarStmts(Tl, Rest),
+		append(Res, Rest, Res1)
+	);
+	Hd = [if_stmt, Expr, CmpStmt, [else_stmt, ElseBlock, []]] ->
+	(
+		desugarExpr(Expr, ResStmts, Result),
+		desugarStmts([CmpStmt, []], [ResCmpStmt, []]),
+		desugarStmts([ElseBlock, []], [ResElseBlock, []]),
+
+		append(ResStmts, [[if_stmt, [Result, []], ResCmpStmt, [else_stmt, ResElseBlock, []]]], Res),
+
+		desugarStmts(Tl, Rest),
+		append(Res, Rest, Res1)
+	);
+	Hd = [if_stmt, Expr, CmpStmt, []] ->
+	(
+		desugarExpr(Expr, ResStmts, Result),
+		desugarStmts([CmpStmt, []], [ResCmpStmt, []]),
+
+		append(ResStmts, [[if_stmt, [Result, []], ResCmpStmt, []]]], Res),
+
+		desugarStmts(Tl, Rest),
+		append(Res, Rest, Res1)
+	);
+	Hd = [iter_stmt, Expr, CmpStmt, []] ->
+	(
+		desugarExpr(Expr, ResStmts, Result),
+		desugarStmts([CmpStmt, []], [ResCmpStmt, []]),
+
+		append(ResStmts, [[iter_stmt, [Result, []], ResCmpStmt, []]]], Res),
+
+		desugarStmts(Tl, Rest),
+		append(Res, Rest, Res1)
+	);
+	Hd = [match_stmt, Expr|Cases] ->
+	(
+		desugarExpr(Expr, ResStmts, Result),
+		desugarCases(Cases, ResCases),
+		append([match_stmt, [Result, []]], ResCases, Match),
+		append(ResStmts, [Match], Res),
+
+		desugarStmts(Tl, Rest),
+		append(Res, Rest, Res1)
+	);
+	Hd = [res_stmt|Rest] ->
+	(
+		resStmtToMoveStmt(Hd, MoveStmt),
+		desugarStmts(MoveStmt, Res),
+
+		desugarStmts(Tl, Rest),
+		append(Res, Rest, Res1)
+	);
+	Hd = [move_stmt, Dest|Rest] ->
+	(
+		desugarExpr(Dest, ResDest, Result),
+		(
+			Rest = ['LEFT_MOVE', Src, []] ->
+			(
+				desugarExpr(Src, ResSrc, Result1),
+				append(ResDest, ResSrc, Res2),
+				append(Res2, [[move_stmt, [Result, []], 'LEFT_MOVE', [Result1, []], []]], Res),
+
+				desugarStmts(Tl, Rest),
+				append(Res, Rest, Res1)
+			);
+			Rest = ['LEFT_COPY', Src, []] ->
+			(
+				desugarExpr(Src, ResSrc, Result1),
+				append(ResDest, ResSrc, Res2),
+				append(Res2, [[move_stmt, [Result, []], 'LEFT_COPY', [Result1, []], []]], Res),
+
+				desugarStmts(Tl, Rest),
+				append(Res, Rest, Res1)
+			);
+			Rest = ['LEFT_COPY', handle, Src, []] ->
+			(
+				desugarExpr(Src, ResStmts, Result1),
+
+				desugarStmts(Tl, Rest),
+				validReturnFieldName(Name2).
+				append([[move_stmt, [Result, []], 'LEFT_COPY', [Result1, [field_select, Name2, []], []], []]], Rest, Stmts),
+				outOfMemoryErrFieldName(Name1),
+				append(ResStmts, [[match_stmt, [Result1, []], [case, Name1, [res_stmt, [field_select, Name1, []], 'LEFT_MOVE', [unit_const, []], []], []], [case, Stmts], []]], Res1)
+			)
+		)
+	);
+	Hd = [drop_stmt, Expr, []] ->
+	(
+		desugarExpr(Expr, ResExpr, Result),
+		append(ResExpr, [[drop_stmt, [Result, []], []]], Res),
+		desugarStmts(Tl, Rest),
+		append(Res, Rest, Res1)
+	);
+	Hd = Expr ->
+	(
+		desugarExpr(Expr, ResExpr, Result),
+		desugarStmts(Tl, Rest),
+		append(ResExpr, Rest, Res1)
+	)
+).
+
+resStmtToMoveStmt(Tl, Res) :- resStmtToMoveStmtInternal(Tl, [], Res).
+resStmtToMoveStmtInternal(Tl, Buffer, Res) :-
+	(
+		Tl = [res_stmt|Rest] ->
+		(
+			resStmtToMoveStmtInternal(Rest, Buffer, Res)
+		);
+		Tl = [deref_adr|Rest] ->
+		(
+			append(Buffer, [deref_adr], Result),
+			resStmtToMoveStmtInternal(Rest, Result, Res)
+		);
+		Tl = [deref_ptr|Rest] ->
+		(
+			append(Buffer, [deref_ptr], Result),
+			resStmtToMoveStmtInternal(Rest, Result, Res)
+		);
+		Tl = [[indexing, Expr, []]|Rest] ->
+		(
+			append(Buffer, [[indexing, Expr, []]], Result),
+			resStmtToMoveStmtInternal(Rest, Result, Res)
+		);
+		Tl = [[field_select, Name, []]|Rest] ->
+		(
+			append(Buffer, [[field_select, Name, []]], Result),
+			resStmtToMoveStmtInternal(Rest, Result, Res)
+		);
+		(
+			resVarName(Name),
+			append([Name], Buffer, Res1),
+			Res = [move_stmt, Res1|Tl]
+		)
+	).
+
+desugarCases([[]], [[]]).
+desugarCases([[case|Rest]|Tl], [Res|ResRest]) :-
+	(
+		(
+			Rest = [Name|Stmts],
+			atom(Name)
+		) ->
+		(
+			desugarStmts(Stmts, ResStmts),
+			Res = [case, Name|ResStmts]
+		);
+		(
+			desugarStmts(Rest, ResStmts),
+			Res = [case|ResStmts]
+		)
+	),
+	desugarCases(Tl, ResRest).
+
+desugarExpr(Expr, ResStmts, Result) :- 
+	(
+		(
+			Expr = [First|Tl1],
+			atom(First)
+		) ->
+		(
+			First = unit_const ->
+			(
+				Tl1 = Opers,
+				nextIndex(temp, ID),
+				atomic_concat('_', ID, Name),
+				Temp = [[temp, Name], [move_stmt, [Name, []], 'LEFT_MOVE', [unit_const, []], []]],
+				desugarOpers(Opers, Name, Stmts, Result),
+				append(Temp, Stmts, ResStmts)
+			);
+			(
+				First = LibName,
+				Tl1 = [Name|Opers],
+				atom(Name),
+				Name \= handle,
+				Name \= get_adr,
+				Name \= get_ptr,
+				Name \= deref_adr,
+				Name \= deref_ptr
+			) ->
+			(
+%%%%%%%%%%%%%%%%%%%%%%%%
+			);
+			First = Name ->
+			(
+				Tl1 = Opers,
+%%%%%%%%%%%%%%%%%%%%%%%%
+			)
+		);
+		(
+			Expr = [[struct_ctor|Initers]|Opers] ->
+			(
+				%%%%%%%%%%%%%%
+			);
+			Expr = [[union_ctor|Initers]|Opers] ->
+			(
+				%%%%%%%%%%%%%%
+
+			);
+			Expr = [[array_ctor|Initers]|Opers] ->
+			(
+				%%%%%%%%%%%%%%
+
+			);
+			Expr = [[uint_const, Uint]|Opers] ->
+			(
+				%%%%%%%%%%%%%%
+
+			);
+			Expr = [[int_const, Int]|Opers] ->
+			(
+				%%%%%%%%%%%%%%
+
+			);
+			Expr = [[float_const, Float]|Opers] ->
+			(
+				%%%%%%%%%%%%%%
+
+			);
+			Expr = [[char_const, Char]|Opers] ->
+			(
+				%%%%%%%%%%%%%%
+
+			);
+			Expr = [[str_const, Str]|Opers] ->
+			(
+				%%%%%%%%%%%%%%
+
+			);
+			Expr = [[bool_const, Bool]|Opers] ->
+			(
+				%%%%%%%%%%%%%%
+			)
+		)
+	).
+
+handleOpers([[]], _, Temp, Temp).
+handleOpers(Opers, Block, Temp, Res) :-
+	(
+		Opers = [handle|Rest] ->
+		(
+			union(Temp, Fields),
+			maplist(fieldType, Fields, Types),
+			(
+				member(OneType, Types),
+				\+ unit(OneType) 
+			) ->
+			(
+				Type = OneType
+			);
+			(
+				nextIndex(type_spec, ID1),
+				assert(unit(ID1)),
+				Type = ID1
+			)
+			newAllocatedTemp(Block, Type, NextTemp),
+
+			nextIndex(op, ID),
+			assert(blockOf(ID, Block)),
+			assert(match(ID)),
+			assert(matchArg(ID, Temp)),
+			nextIndex(block, BlockID),
+			caseGenForHandle(Fields, NextTemp, Cases),
+			handleCases(Cases, BlockID),
+			assert(matchCases(ID, BlockID))
+		);
+		Opers = [get_adr|Rest] ->
+		(
+			%%%%%%%%%%%%%%
+		);
+		Opers = [get_ptr|Rest] ->
+		(
+			%%%%%%%%%%%%%%
+		);
+		Opers = [deref_adr|Rest] ->
+		(
+			%%%%%%%%%%%%%%
+		);
+		Opers = [deref_ptr|Rest] ->
+		(
+			%%%%%%%%%%%%%%
+		);
+		Opers = [[indexing, Expr, []]|Rest] ->
+		(
+			%%%%%%%%%%%%%%
+		);
+		Opers = [[field_select, Name, []]|Rest] ->
+		(
+			%%%%%%%%%%%%%%
+		);
+		Opers = [[fn_call, Annot, StructCtor, []]|Rest] ->
+		(
+			%%%%%%%%%%%%%%
+		);
+		Opers = [[fn_call, StructCtor, []]|Rest] ->
+		(
+			%%%%%%%%%%%%%%
+		);
+		Opers = [[method_call|Tl]|Rest] ->
+		(
+			%%%%%%%%%%%%%%
+		)
+	),
+	handleOpers(Rest, Block, NextTemp, Res).
 
 handleFile(Libs) :- maplist(handleLib, Libs).
 
@@ -399,11 +760,11 @@ handleStmts([Hd|Tl], Block) :-
 			handleCases(Cases, BlockID),
 			assert(matchCases(ID, BlockID)),
 		);
-		Hd = [res_stmt|Rest] ->
-		(
-			resStmtToMoveStmt(Hd, Res),
-			handleStmts(Res, Block)
-		);
+		% Hd = [res_stmt|Rest] ->
+		% (
+		% 	resStmtToMoveStmt(Hd, Res),
+		% 	handleStmts(Res, Block)
+		% );
 		Hd = [move_stmt, Dest|Rest] ->
 		(
 			handleExprWithoutType(Dest, Block, Res),
@@ -435,29 +796,30 @@ handleStmts([Hd|Tl], Block) :-
 					assert(move(ID1)),
 					assert(moveDest(ID1, Res)),
 					assert(moveSrc(ID1, Temp))
-				);
-				Rest = ['LEFT_COPY', handle, Src, []] ->
-				(
-					handleExpr(Src, Block, VarType, Result), 
-
-					newTemp(Block, VarType, Temp),
-
-					nextIndex(op, ID),
-					assert(blockOf(ID, Block)),
-					assert(copy(ID)),
-					assert(copyDest(ID, Temp)),
-					assert(copySrc(ID, Result)),
-
-					varDeclName(Temp, TempName),
-					primExprType([handle], VarType, PrimExprType),
-					handleExpr([TempName, handle, []], Block, PrimExprType, Result1), 
-
-					nextIndex(op, ID1),
-					assert(blockOf(ID1, Block)),
-					assert(move(ID1)),
-					assert(moveDest(ID1, Res)),
-					assert(moveSrc(ID1, Result1))
 				)
+				% ;
+				% Rest = ['LEFT_COPY', handle, Src, []] ->
+				% (
+				% 	handleExpr(Src, Block, VarType, Result), 
+
+				% 	newTemp(Block, VarType, Temp),
+
+				% 	nextIndex(op, ID),
+				% 	assert(blockOf(ID, Block)),
+				% 	assert(copy(ID)),
+				% 	assert(copyDest(ID, Temp)),
+				% 	assert(copySrc(ID, Result)),
+
+				% 	varDeclName(Temp, TempName),
+				% 	primExprType([handle], VarType, PrimExprType),
+				% 	handleExpr([TempName, handle, []], Block, PrimExprType, Result1), 
+
+				% 	nextIndex(op, ID1),
+				% 	assert(blockOf(ID1, Block)),
+				% 	assert(move(ID1)),
+				% 	assert(moveDest(ID1, Res)),
+				% 	assert(moveSrc(ID1, Result1))
+				% )
 			)
 		);
 		Hd = [drop_stmt, Expr, []] ->
@@ -474,39 +836,39 @@ handleStmts([Hd|Tl], Block) :-
 	),
 	handleStmts(Tl, Block).
 
-resStmtToMoveStmt(Tl, Res) :- resStmtToMoveStmtInternal(Tl, [], Res).
-resStmtToMoveStmtInternal(Tl, Buffer, Res) :-
-	(
-		Tl = [res_stmt|Rest] ->
-		(
-			resStmtToMoveStmtInternal(Rest, Buffer, Res)
-		);
-		Tl = [deref_adr|Rest] ->
-		(
-			append(Buffer, [deref_adr], Result),
-			resStmtToMoveStmtInternal(Rest, Result, Res)
-		);
-		Tl = [deref_ptr|Rest] ->
-		(
-			append(Buffer, [deref_ptr], Result),
-			resStmtToMoveStmtInternal(Rest, Result, Res)
-		);
-		Tl = [[indexing, Expr, []]|Rest] ->
-		(
-			append(Buffer, [[indexing, Expr, []]], Result),
-			resStmtToMoveStmtInternal(Rest, Result, Res)
-		);
-		Tl = [[field_select, Name, []]|Rest] ->
-		(
-			append(Buffer, [[field_select, Name, []]], Result),
-			resStmtToMoveStmtInternal(Rest, Result, Res)
-		);
-		(
-			resVarName(Name),
-			append([Name], Buffer, Res1),
-			Res = [move_stmt, Res1|Tl]
-		)
-	).
+% resStmtToMoveStmt(Tl, Res) :- resStmtToMoveStmtInternal(Tl, [], Res).
+% resStmtToMoveStmtInternal(Tl, Buffer, Res) :-
+% 	(
+% 		Tl = [res_stmt|Rest] ->
+% 		(
+% 			resStmtToMoveStmtInternal(Rest, Buffer, Res)
+% 		);
+% 		Tl = [deref_adr|Rest] ->
+% 		(
+% 			append(Buffer, [deref_adr], Result),
+% 			resStmtToMoveStmtInternal(Rest, Result, Res)
+% 		);
+% 		Tl = [deref_ptr|Rest] ->
+% 		(
+% 			append(Buffer, [deref_ptr], Result),
+% 			resStmtToMoveStmtInternal(Rest, Result, Res)
+% 		);
+% 		Tl = [[indexing, Expr, []]|Rest] ->
+% 		(
+% 			append(Buffer, [[indexing, Expr, []]], Result),
+% 			resStmtToMoveStmtInternal(Rest, Result, Res)
+% 		);
+% 		Tl = [[field_select, Name, []]|Rest] ->
+% 		(
+% 			append(Buffer, [[field_select, Name, []]], Result),
+% 			resStmtToMoveStmtInternal(Rest, Result, Res)
+% 		);
+% 		(
+% 			resVarName(Name),
+% 			append([Name], Buffer, Res1),
+% 			Res = [move_stmt, Res1|Tl]
+% 		)
+% 	).
 
 handleCases([[]], _).
 handleCases([[case|Rest]|Tl], Block) :-
@@ -553,7 +915,11 @@ handleExpr(Expr, Block, Type, Res) :-
 		(
 			First = unit_const ->
 			(
-%%%%%%%%%%%%%%%%%%%%%%%%
+				Tl1 = Opers,
+				nextIndex(type_spec, ID),
+				assert(unit(ID)),
+				newAllocatedTemp(Block, ID, Temp),
+				handleOpers(Opers, Block, Temp, Res)
 			);
 			(
 				First = LibName,
@@ -637,20 +1003,74 @@ handleExpr(Expr, Block, Type, Res) :-
 		)
 	).
 
+handleOpers([[]], _, Temp, Temp).
+handleOpers(Opers, Block, Temp, Res) :-
+	(
+		Opers = [handle|Rest] ->
+		(
+			union(Temp, Fields),
+			maplist(fieldType, Fields, Types),
+			(
+				member(OneType, Types),
+				\+ unit(OneType) 
+			) ->
+			(
+				Type = OneType
+			);
+			(
+				nextIndex(type_spec, ID1),
+				assert(unit(ID1)),
+				Type = ID1
+			)
+			newAllocatedTemp(Block, Type, NextTemp),
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+			nextIndex(op, ID),
+			assert(blockOf(ID, Block)),
+			assert(match(ID)),
+			assert(matchArg(ID, Temp)),
+			nextIndex(block, BlockID),
+			caseGenForHandle(Fields, NextTemp, Cases),
+			handleCases(Cases, BlockID),
+			assert(matchCases(ID, BlockID))
+		);
+		Opers = [get_adr|Rest] ->
+		(
+			%%%%%%%%%%%%%%
+		);
+		Opers = [get_ptr|Rest] ->
+		(
+			%%%%%%%%%%%%%%
+		);
+		Opers = [deref_adr|Rest] ->
+		(
+			%%%%%%%%%%%%%%
+		);
+		Opers = [deref_ptr|Rest] ->
+		(
+			%%%%%%%%%%%%%%
+		);
+		Opers = [[indexing, Expr, []]|Rest] ->
+		(
+			%%%%%%%%%%%%%%
+		);
+		Opers = [[field_select, Name, []]|Rest] ->
+		(
+			%%%%%%%%%%%%%%
+		);
+		Opers = [[fn_call, Annot, StructCtor, []]|Rest] ->
+		(
+			%%%%%%%%%%%%%%
+		);
+		Opers = [[fn_call, StructCtor, []]|Rest] ->
+		(
+			%%%%%%%%%%%%%%
+		);
+		Opers = [[method_call|Tl]|Rest] ->
+		(
+			%%%%%%%%%%%%%%
+		)
+	),
+	handleOpers(Rest, Block, NextTemp, Res).
 
 
 newAllocatedTemp(Block, Type, ID) :-
@@ -665,6 +1085,48 @@ newAllocatedTemp(Block, Type, ID) :-
 	assert(blockOf(ID1, Block)),
 	assert(alloc(ID1)),
 	assert(allocDest(ID1, ID))
+
+
+caseGenForHandle([Field|Fields], Res, [Case|Cases]) :-
+	fieldType(Field, Type),
+	fieldName(Field, Name),
+	(
+		unit(Type) ->
+		(
+			Case = [case, Name, [res_stmt, [field_select, Name, []], LEFT_MOVE, [unit_const, []], []], []]
+		);
+		(
+			atomic_concat('_', Res, Name1),
+			Case = [case, Name, [move_stmt, [Name1, []], LEFT_MOVE, [unit_const], []], []]
+		)
+	)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+		handleGlobExpr(Expr, ResExpr, ResType), 
+
+			handleExprWithoutType(Dest, Block, Res),
+
+
+
+
+
+
+
+
 
 primExprType([[]], Type, Type).
 primExprType(Opers, Type, PrimExprType) :-
@@ -972,12 +1434,6 @@ handleDesignators([Hd|Tl], ArgID, Rest, Result) :-
 	
 
 
-
-
-
-		handleGlobExpr(Expr, ResExpr, ResType), 
-
-			handleExprWithoutType(Dest, Block, Res),
 
 
 

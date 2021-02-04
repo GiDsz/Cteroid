@@ -11,3 +11,15 @@
 /ctc.go
 /ctc.py
 /CtLexer.interp
+/CtLexer.tokens
+__pycache__/CtLexer.cpython-39.pyc
+__pycache__/CtListener.cpython-39.pyc
+__pycache__/CtParser.cpython-39.pyc
+parser/tct_base_listener.go
+parser/tct_lexer.go
+parser/tct_listener.go
+parser/tct_parser.go
+parser/Tct.interp
+parser/Tct.tokens
+parser/TctLexer.interp
+parser/TctLexer.tokens
