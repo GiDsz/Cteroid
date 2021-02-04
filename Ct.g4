@@ -100,6 +100,7 @@ type_spec:
 		| adr_qual
 		| struct_qual
 		| func_qual
+		| immut_func_qual
 		| union_qual
 		| placehldr
 		| typedef
@@ -131,6 +132,7 @@ struct_qual: LPAREN (field COMMA?)+ RPAREN;
 union_qual: LBRACE (field COMMA?)+ RBRACE;
 field: ID COLON type_spec;
 func_qual: struct_qual RIGHT_MOVE type_spec;
+immut_func_qual: struct_qual GRAVE_ACCENT RIGHT_MOVE type_spec;
 typedef: path arg_annot?;
 
 arg_annot: LANGLE_BRACKET (type_spec COMMA?)+ RANGLE_BRACKET;
@@ -147,7 +149,7 @@ stmt: (
 		| res_stmt
 		| move_stmt
 		| drop_stmt
-		| expr
+		| expr_stmt
 	) COMMA?;
 local_var_decl: VAR ID COLON type_spec;
 local_var_def: VAR ID COLON type_spec arrow expr;
@@ -161,6 +163,7 @@ case_: ID? COLON stmt*;
 res_stmt: designator* arrow expr;
 move_stmt: expr arrow expr;
 drop_stmt: expr RIGHT_MOVE;
+expr_stmt: expr;
 expr: prim_expr operation*;
 prim_expr: (path | ctor);
 operation: (
