@@ -7,6 +7,10 @@ nextTempName(Name) :-
 	nextIndex('__temp__', ID),
 	atomic_concat('_', ID, Name).
 
+curTempName(Name) :-
+	index('__temp__', ID),
+	atomic_concat('_', ID, Name).
+
 astNthNode(AST, [Ind|[]], Node):- 
 	nth0(Ind, AST, Node).
 astNthNode(AST, [Ind|IndTl], Node):- 
@@ -45,13 +49,18 @@ astInsertNode([Hd|Tl], [Ind|RestInd], Node, [ResHd|ResTl]) :-
 
 
 astSimplify(AST, ResAST) :-
-	astNthNode(AST, Loc, [immut_func_qual, Info|Rest]) ->
-	(
-		astSetNode(AST, Loc, [immut, Info [func_qual, Info|Rest]], AST1),
 
 
-		astSimplify(AST1, ResAST)
-	);
+
+
+% astSimplify_immut_func_qual(AST, ResAST) :-
+% 	astNthNode(AST, Loc, [immut_func_qual, Info|Rest]) ->
+% 	(
+% 		astSetNode(AST, Loc, [immut, Info [func_qual, Info|Rest]], AST1),
+
+
+% 		astSimplify(AST1, ResAST)
+% 	);
 	astNthNode(AST, Loc, [fn_body, Info, Stmts|_]) ->
 	(
 		append(RestInd, [LastInd], Loc),
@@ -68,27 +77,30 @@ astSimplify(AST, ResAST) :-
 	);
 	astNthNode(AST, Loc, [local_var_decl, Info, Name, Type|_]) ->
 	(
-		astSetNode(AST, Loc, [localVar, Info, Name, Type], AST1),
+		atomic_concat(Name, '_', Name1),
+		astSetNode(AST, Loc, [localVar, Info, Name1, Type], AST1),
 
 
 		astSimplify(AST1, ResAST)
 	);
 	astNthNode(AST, Loc, [local_var_def, Info, Name, Type, [arrow, Info1, 'LEFT_MOVE'|_], Expr|_]) ->
 	(
-		astSetNode(AST, Loc, [localVar, Info, Name, Type], AST1),
+		atomic_concat(Name, '_', Name1),
+		astSetNode(AST, Loc, [localVar, Info, Name1, Type], AST1),
 		
 		append(RestInd, [LastInd], Loc),
 		Ind is LastInd + 1,
 		append(RestInd, [Ind], InsertLoc),
 
-		astInsertNode(AST1, InsertLoc, [move, Info1, Name, Expr], AST2),
+		astInsertNode(AST1, InsertLoc, [move, Info1, Name1, Expr], AST2),
 
 
 		astSimplify(AST2, ResAST)
 	);
 	astNthNode(AST, Loc, [local_var_def, Info, Name, Type, [arrow, Info1, 'LEFT_COPY', handle|_], Expr|_]) ->
 	(
-		astSetNode(AST, Loc, [localVar, Info, Name, Type], AST1),
+		atomic_concat(Name, '_', Name1),
+		astSetNode(AST, Loc, [localVar, Info, Name1, Type], AST1),
 
 		append(RestInd, [LastInd], Loc),
 		Ind is LastInd + 1,
@@ -96,7 +108,7 @@ astSimplify(AST, ResAST) :-
 
 		nextTempName(Temp),
 
-		astInsertNode(AST1, InsertLoc, [move, Info1, Name, [[id, Info1, Temp, []], handle, []]], AST2),
+		astInsertNode(AST1, InsertLoc, [move, Info1, Name1, [[id, Info1, Temp, []], handle, []]], AST2),
 		astInsertNode(AST2, InsertLoc, [copy, Info1, Temp, Expr], AST3),
 		astInsertNode(AST3, InsertLoc, [temp, Info1, Temp, [union, Info1, [[field, Info1, res, Type], [field, Info1, outOfMemory, [unit, Info1]]]], AST4),
 
@@ -105,7 +117,8 @@ astSimplify(AST, ResAST) :-
 	);
 	astNthNode(AST, Loc, [local_var_def, Info, Name, Type, [arrow, Info1, 'LEFT_COPY'|_], Expr|_]) ->
 	(
-		astSetNode(AST, Loc, [localVar, Info, Name, Type], AST1),
+		atomic_concat(Name, '_', Name1),
+		astSetNode(AST, Loc, [localVar, Info, Name1, Type], AST1),
 		
 		append(RestInd, [LastInd], Loc),
 		Ind is LastInd + 1,
@@ -113,7 +126,7 @@ astSimplify(AST, ResAST) :-
 
 		nextTempName(Temp),
 
-		astInsertNode(AST1, InsertLoc, [move, Info1, Name, Temp], AST2),
+		astInsertNode(AST1, InsertLoc, [move, Info1, Name1, Temp], AST2),
 		astInsertNode(AST2, InsertLoc, [copy, Info1, Temp, Expr], AST3),
 		astInsertNode(AST3, InsertLoc, [temp, Info1, Temp, Type], AST4),
 
@@ -160,6 +173,7 @@ astSimplify(AST, ResAST) :-
 	);
 	astNthNode(AST, Loc, [res_stmt, Info, Desig, Arrow, Expr|_]) ->
 	(
+		%%%%%%%%%%%%%%%%%%%% ResDesignator
 		astSetNode(AST, Loc, [move_stmt, Info, [expr, [id, Info, '__res__', []], ResDesig, []], Arrow, Expr], AST1),
 
 
@@ -221,20 +235,22 @@ astSimplify(AST, ResAST) :-
 		(
 			Prim = [path, PathInfo, LibName, Name|_] ->
 			(
-				astNthNode(AST, ItemLoc, [func, ItemInfo, true, LibName, Name, _, Type|_]) ->
 				(
-					
-				);
-				astNthNode(AST, ItemLoc, [globVar, ItemInfo, true, LibName, Name, _, Type|_]) ->
-				(
+					astNthNode(AST, _, [func, _, true, LibName, Name, _, Type|_]);
+					astNthNode(AST, _, [globVar, _, true, LibName, Name, Type|_])
+				),
+				nextTempName(Temp),
+				astInsertNode(AST, Pos, [temp, PathInfo, Temp, Type], AST1),
+				Pos1 is Pos + 1,
+				astInsertNode(AST1, Pos1, [globAccess, PathInfo, Temp, LibName, Name], AST2),
+				Pos2 is Pos1 + 1,
 
-				)
-				%astInsertNode(AST, Pos, [copy, Info1, Temp, Expr1], AST1)
+				simplifyOpers(AST2, Opers, Pos2, InterAST)
 			);
-		)
+		),
 
 
-		astSimplify(AST1, ResAST)
+		astSimplify(InterAST, ResAST)
 	);
 	astNthNode(AST, Loc, [expr_stmt, Info, Expr|[]]) ->
 	(
@@ -245,8 +261,45 @@ astSimplify(AST, ResAST) :-
 simplifyCase([case, Info, [[]], Stmts|_], [defaultCase, Info, Stmts]).
 simplifyCase([case, Info, [id, Info1, Name], Stmts|_], [case, Info, Name, Stmts]).
 
+simplifyOpers(AST, [[]|_], _, AST).
+simplifyOpers(AST, [[handle, Info|_]|Tl], Pos, InterAST) :-
+	curTempName(Temp),
+
+	append(Loc, [Last], Pos),
+	astNthNode(AST, Loc, Node),
+	LastInd is Last - 1,
+	tailAfter(Node, LastInd, Tail),
+	append(Head, Tail, Node),
+
+	astNthNode(Node, _, [temp, _, Temp, Type]),
+	Type = [union, _, Fields],
+
+	unionFieldToCase(Tail, Info, Fields1, Cases),
+
+	astInsertNode(AST, Loc, [Head, [match, Info, Temp, Cases]], AST1),
+
+unionFieldToCase(Stmts, _, [[]|_], []).
+unionFieldToCase(Stmts, Info, [Field|Tl], [Case|Rest]) :-
+	Field = [field, _, Name, Type],
+	(
+		Type = [unit|_] ->
+		(
+			Case = [case, Info, Name, [[localVar, Info, Name, Type], [res_stmt, Info, [designator, Info, ]]]]
+		);
+		(
+			%%%%%%%%%%%%%
+		)
+	),
+	Case = /*******************/,
+	unionFieldToCase(Stmts, Tl, Rest).
+
 
 
 removeEmpties([], []).
 removeEmpties([[]|Tl], Tl1) :- removeEmpties(Tl, Tl1).
 removeEmpties([Hd|Tl], [Hd|Tl1]) :- removeEmpties(Tl, Tl1).
+
+tailAfter([_|Res], 0, Res).
+tailAfter([Hd|Tl], Index, Res) :-
+	Index1 is Index - 1,
+	tailAfter(Tl, Index1, Res).

@@ -1,0 +1,2 @@
+python run.py ct.ct >_ir.ir
+python fmt.py <_ir.ir >_fmt_ir.ir

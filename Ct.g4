@@ -67,7 +67,9 @@ WS: [ \t\r\n\f]+ -> skip;
 //Rules
 file_: lib_def+ EOF;
 lib_def:
-	LIB ID COLON LPAREN (exported_item COMMA?)+ RPAREN LBRACE lib_item+ RBRACE;
+	LIB ID COLON LPAREN exported_items RPAREN LBRACE lib_items RBRACE;
+lib_items: lib_item+;
+exported_items: (exported_item COMMA?)+;
 exported_item: type_decl | fn_decl | glob_var_decl;
 lib_item: type_def | fn_def | glob_var_def;
 
@@ -75,20 +77,22 @@ type_decl: TYPE ID;
 glob_var_decl: VAR ID;
 fn_decl: FN ID;
 
-type_def: TYPE ID placehldr_annot? COLON type_spec;
-fn_def: FN ID param_annot? COLON type_spec fn_body;
+type_def: TYPE ID placehldr_annot COLON type_spec;
+fn_def: FN ID param_annot COLON type_spec fn_body;
 glob_var_def: VAR ID COLON type_spec LEFT_MOVE expr;
 
-param_annot:
-	LANGLE_BRACKET ((param | param_for_param) COMMA?)+ RANGLE_BRACKET;
+param_annot: LANGLE_BRACKET params RANGLE_BRACKET |;
+params: ((param | param_for_param) COMMA?)+;
 placehldr_annot:
-	LANGLE_BRACKET (placehldr COMMA?)+ RANGLE_BRACKET;
+	LANGLE_BRACKET (placehldr COMMA?)+ RANGLE_BRACKET
+	|;
+placehldrs: (placehldr COMMA?)+;
 
 param: APOSTROPHE ID;
 param_for_param: APOSTROPHE APOSTROPHE ID;
 placehldr: ID;
 
-path: ID (DASH ID)*;
+path: ID (DASH ID)?;
 
 type_spec:
 	(
@@ -133,9 +137,9 @@ union_qual: LBRACE (field COMMA?)+ RBRACE;
 field: ID COLON type_spec;
 func_qual: struct_qual RIGHT_MOVE type_spec;
 immut_func_qual: struct_qual GRAVE_ACCENT RIGHT_MOVE type_spec;
-typedef: path arg_annot?;
+typedef: path arg_annot;
 
-arg_annot: LANGLE_BRACKET (type_spec COMMA?)+ RANGLE_BRACKET;
+arg_annot: LANGLE_BRACKET (type_spec COMMA?)+ RANGLE_BRACKET |;
 
 fn_body: LBRACE stmt+ RBRACE;
 
@@ -155,12 +159,13 @@ local_var_decl: VAR ID COLON type_spec;
 local_var_def: VAR ID COLON type_spec arrow expr;
 arrow: (LEFT_MOVE | LEFT_COPY handle?);
 cmp_stmt: LBRACE stmt+ RBRACE;
-if_stmt: IF expr cmp_stmt else_stmt?;
-else_stmt: ELSE (cmp_stmt | if_stmt);
-iter_stmt: WHILE expr cmp_stmt;
+if_stmt: IF expr block else_stmt;
+else_stmt: ELSE (block | if_stmt) |;
+iter_stmt: WHILE expr block;
+block: LBRACE stmt* RBRACE;
 match_stmt: MATCH expr LBRACE case_+ RBRACE;
 case_: ID? COLON stmt*;
-res_stmt: designator* arrow expr;
+res_stmt: designator arrow expr;
 move_stmt: expr arrow expr;
 drop_stmt: expr RIGHT_MOVE;
 expr_stmt: expr;
@@ -184,8 +189,8 @@ deref_adr: ASTERISK;
 deref_ptr: CARET;
 indexing: LBRACKET expr RBRACKET;
 field_select: DOT ID;
-fn_call: arg_annot? struct_ctor;
-method_call: EXCLAMATION_MARK expr arg_annot? struct_ctor;
+fn_call: arg_annot struct_ctor;
+method_call: EXCLAMATION_MARK expr arg_annot struct_ctor;
 ctor: (const_ | struct_ctor | union_ctor | array_ctor);
 const_: (
 		UINT_CONST
@@ -196,8 +201,10 @@ const_: (
 		| BOOL_CONST
 		| UNIT
 	);
-struct_ctor: LPAREN (initer COMMA?)+ RPAREN;
-union_ctor: LBRACE (initer COMMA?)+ RBRACE;
-array_ctor: LBRACKET (initer COMMA?)+ RBRACKET;
-initer: (designator+ arrow expr | arrow? expr);
-designator: (indexing | field_select | deref_adr | deref_ptr);
+struct_ctor: LPAREN ((initer | position_initer) COMMA?)+ RPAREN;
+union_ctor: LBRACE ((initer | position_initer) COMMA?)+ RBRACE;
+array_ctor:
+	LBRACKET ((initer | position_initer) COMMA?)+ RBRACKET;
+position_initer: (arrow? expr);
+initer: designator arrow expr;
+designator: (indexing | field_select | deref_adr | deref_ptr | handle)*;

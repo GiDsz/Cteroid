@@ -2,17 +2,22 @@ lib vec:
 (
     type vec
     fn New
+	var PI
 )
 {
     type vec<a>: (len: size, cap: size, data: ${null: (), val: [len]a, mem: [cap]a})
 
-    fn New<'a>: (cap: size) -> {
-					           	   res: vec<'a>
-					           	   outOfMemory: ()
-					           }
+    fn New<'a, ''b>: (cap: size, ctor: () -> ''b) -> {
+					           						 	 res: vec<'a>
+					           						 	 outOfMemory: ()
+					           						 }
     {
-        .res <- (.len <- 0, .cap <- cap, .data <- {.null <- ()}?$)?
+		var res: vec<'a> <- (.len <- 0, .cap <- cap, .data <- {.null <- ()}?$)?
+		ctor<'a>()
+		.res <- res
     }
+
+	var PI: `f32 <- 3.1415 
 
 //	fn New<'a>: (cap: size) -> {
 //					           	   res: vec<'a>
@@ -27,12 +32,12 @@ lib vec:
 //			match res
 //			{
 //				val:
-//					.res <- res.val
+//					.res <- val
 //				outOfMemory:
-//					.outOfMemory <- res.outOfMemory
+//					.outOfMemory <- outOfMemory
 //			}
 //		outOfMemory:
-//			.outOfMemory <- data.outOfMemory
+//			.outOfMemory <- outOfMemory
 //		}
 //  }
 }

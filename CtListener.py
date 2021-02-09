@@ -26,6 +26,24 @@ class CtListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by CtParser#lib_items.
+    def enterLib_items(self, ctx:CtParser.Lib_itemsContext):
+        pass
+
+    # Exit a parse tree produced by CtParser#lib_items.
+    def exitLib_items(self, ctx:CtParser.Lib_itemsContext):
+        pass
+
+
+    # Enter a parse tree produced by CtParser#exported_items.
+    def enterExported_items(self, ctx:CtParser.Exported_itemsContext):
+        pass
+
+    # Exit a parse tree produced by CtParser#exported_items.
+    def exitExported_items(self, ctx:CtParser.Exported_itemsContext):
+        pass
+
+
     # Enter a parse tree produced by CtParser#exported_item.
     def enterExported_item(self, ctx:CtParser.Exported_itemContext):
         pass
@@ -107,12 +125,30 @@ class CtListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by CtParser#params.
+    def enterParams(self, ctx:CtParser.ParamsContext):
+        pass
+
+    # Exit a parse tree produced by CtParser#params.
+    def exitParams(self, ctx:CtParser.ParamsContext):
+        pass
+
+
     # Enter a parse tree produced by CtParser#placehldr_annot.
     def enterPlacehldr_annot(self, ctx:CtParser.Placehldr_annotContext):
         pass
 
     # Exit a parse tree produced by CtParser#placehldr_annot.
     def exitPlacehldr_annot(self, ctx:CtParser.Placehldr_annotContext):
+        pass
+
+
+    # Enter a parse tree produced by CtParser#placehldrs.
+    def enterPlacehldrs(self, ctx:CtParser.PlacehldrsContext):
+        pass
+
+    # Exit a parse tree produced by CtParser#placehldrs.
+    def exitPlacehldrs(self, ctx:CtParser.PlacehldrsContext):
         pass
 
 
@@ -251,6 +287,15 @@ class CtListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by CtParser#immut_func_qual.
+    def enterImmut_func_qual(self, ctx:CtParser.Immut_func_qualContext):
+        pass
+
+    # Exit a parse tree produced by CtParser#immut_func_qual.
+    def exitImmut_func_qual(self, ctx:CtParser.Immut_func_qualContext):
+        pass
+
+
     # Enter a parse tree produced by CtParser#typedef.
     def enterTypedef(self, ctx:CtParser.TypedefContext):
         pass
@@ -350,6 +395,15 @@ class CtListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by CtParser#block.
+    def enterBlock(self, ctx:CtParser.BlockContext):
+        pass
+
+    # Exit a parse tree produced by CtParser#block.
+    def exitBlock(self, ctx:CtParser.BlockContext):
+        pass
+
+
     # Enter a parse tree produced by CtParser#match_stmt.
     def enterMatch_stmt(self, ctx:CtParser.Match_stmtContext):
         pass
@@ -392,6 +446,15 @@ class CtListener(ParseTreeListener):
 
     # Exit a parse tree produced by CtParser#drop_stmt.
     def exitDrop_stmt(self, ctx:CtParser.Drop_stmtContext):
+        pass
+
+
+    # Enter a parse tree produced by CtParser#expr_stmt.
+    def enterExpr_stmt(self, ctx:CtParser.Expr_stmtContext):
+        pass
+
+    # Exit a parse tree produced by CtParser#expr_stmt.
+    def exitExpr_stmt(self, ctx:CtParser.Expr_stmtContext):
         pass
 
 
@@ -545,6 +608,15 @@ class CtListener(ParseTreeListener):
 
     # Exit a parse tree produced by CtParser#array_ctor.
     def exitArray_ctor(self, ctx:CtParser.Array_ctorContext):
+        pass
+
+
+    # Enter a parse tree produced by CtParser#position_initer.
+    def enterPosition_initer(self, ctx:CtParser.Position_initerContext):
+        pass
+
+    # Exit a parse tree produced by CtParser#position_initer.
+    def exitPosition_initer(self, ctx:CtParser.Position_initerContext):
         pass
 
 

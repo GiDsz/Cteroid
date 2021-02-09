@@ -1,20 +1,22 @@
 
-localVar, Info, Name, Type
-temp, Info, Name, Type
+localVar, Name, Type
+temp, Name, Type
 
-move, Info, DestName, SrcName
-copy, Info, DestName, SrcName
-% unionFieldSelect, Info, FieldName, DestName, SrcName, 
+move, DestName, SrcName
+copy, DestName, SrcName
+% unionFieldSelect, FieldName, DestName, SrcName, 
 
-match, Info, Arg, [Cases]
-case, Info, FieldName, [Stmts]
-defaultCase, Info, [Stmts]
+match, Arg, [Cases]
+case, FieldName, [Stmts]
+defaultCase, [Stmts]
 
-cmpStmt, Info, Stmts
-if, Info, Cond, Stmts, ElseStmts or [[]]
-while, Info, Arg, Stmts
-drop, Info, SrcName
+cmpStmt, Stmts
+if, Cond, Stmts, ElseStmts or [[]]
+while, Arg, Stmts
+drop, SrcName
 
-type, Info, IsExported, LibName, Name, Placehldrs, Type 
-func, Info, IsExported, LibName, Name, Params, Type, Body
-globVar, Info, IsExported, LibName, Name, Type, Stmts
+globAccess, DestName, LibName, Name
+
+type, IsExported, LibName, Name, Placehldrs, Type 
+func, IsExported, LibName, Name, Params, Type, Body
+globVar, IsExported, LibName, Name, Type, Stmts
