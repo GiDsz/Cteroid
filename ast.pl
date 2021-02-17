@@ -1,22 +1,24 @@
 
-localVar, Name, Type
-temp, Name, Type
+:- module(ast, []).
 
-move, DestName, SrcName
-copy, DestName, SrcName
-% unionFieldSelect, FieldName, DestName, SrcName, 
+pathToList(/(Hd, Tl), List) :-
+	pathToList(Hd, Res),
+	append(Res, [Tl], List).
+pathToList(Atom, [Atom]) :-
+	atom(Atom).
 
-match, Arg, [Cases]
-case, FieldName, [Stmts]
-defaultCase, [Stmts]
+N.getRec([Hd|[]]) := Res :-
+	Res = N.get(Hd).
+N.getRec([Hd|Tl]) := Res :-
+	Node = N.get(Hd),
+	Res = Node.getRec(Tl).
 
-cmpStmt, Stmts
-if, Cond, Stmts, ElseStmts or [[]]
-while, Arg, Stmts
-drop, SrcName
+N.find(Path) := Res :-
+	pathToList(Path, List),
+	Res = N.getRec(List).
 
-globAccess, DestName, LibName, Name
+valid(Node) :-
+	\+ (_ = Node.get(errors)).
 
-type, IsExported, LibName, Name, Placehldrs, Type 
-func, IsExported, LibName, Name, Params, Type, Body
-globVar, IsExported, LibName, Name, Type, Stmts
+invalid(Node) :-
+	_ = Node.get(errors).
