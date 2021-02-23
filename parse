@@ -1,0 +1,1 @@
+swipl -g "consult('ast.pl'), consult('parser.pl'), consult('lexer.pl'), lex('$1', X), parse(Tree, X, []), astWrite(Tree, -1)." -t halt.

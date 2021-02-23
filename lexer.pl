@@ -338,8 +338,6 @@ symbol([dollar, 0, L, C, L, C]) -->
 	[['$', L, C]].
 symbol([question_mark, 0, L, C, L, C]) -->
 	[['?', L, C]].
-symbol([exclamation_mark, 0, L, C, L, C]) -->
-	[['!', L, C]].
 symbol([lbracket, 0, L, C, L, C]) -->
 	[['[', L, C]].
 symbol([rbracket, 0, L, C, L, C]) -->

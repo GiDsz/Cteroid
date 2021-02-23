@@ -8,13 +8,13 @@ lib vec:
     type vec<a>: (len: size, cap: size, data: ${null: (), val: [len]a, mem: [cap]a})
 
     fn New<'a, ''b>: (cap: size, ctor: () -> ''b) -> {
-					           						 	 res: vec<'a>
+					           						 	 res: vec-vec<'a>
 					           						 	 outOfMemory: ()
 					           						 }
     {
-		var res: vec<'a> <- (.len <- 0, .cap <- cap, .data <- {.null <- ()}?$)?
-		ctor<'a>()
-		.res <- res
+		var res: vec-vec<'a> <- (.len <- 0, .cap <- cap, .data <- {.null <- ()}?$)?,
+		ctor<'a>(),
+		.res <- res,
     }
 
 	var PI: `f32 <- 3.1415 

@@ -1,0 +1,658 @@
+
+libDefs: 
+	0: 
+		exports: 
+			0: 
+				name: vec
+				fileName: ct.ct
+				startLine: 2
+				startCol: 5
+				endLine: 2
+				endCol: 12
+				itemType: type
+			1: 
+				name: New
+				fileName: ct.ct
+				startLine: 3
+				startCol: 5
+				endLine: 3
+				endCol: 10
+				itemType: fn
+			2: 
+				name: PI
+				fileName: ct.ct
+				startLine: 4
+				startCol: 2
+				endLine: 4
+				endCol: 7
+				itemType: var
+		libName: vec
+		fileName: ct.ct
+		startLine: 0
+		startCol: 0
+		endLine: 42
+		endCol: 1
+		typeDefs: 
+			0: 
+				name: vec
+				fileName: ct.ct
+				startLine: 7
+				startCol: 5
+				endLine: 7
+				endCol: 84
+				typeSpec: 
+					fileName: ct.ct
+					startLine: 7
+					startCol: 18
+					endLine: 7
+					endCol: 84
+					mut: true
+					typeQual: struct
+					fields: 
+						0: 
+							name: len
+							fileName: ct.ct
+							startLine: 7
+							startCol: 19
+							endLine: 7
+							endCol: 27
+							elemType: 
+								fileName: ct.ct
+								startLine: 7
+								startCol: 24
+								endLine: 7
+								endCol: 27
+								mut: true
+								typeQual: size
+						1: 
+							name: cap
+							fileName: ct.ct
+							startLine: 7
+							startCol: 30
+							endLine: 7
+							endCol: 38
+							elemType: 
+								fileName: ct.ct
+								startLine: 7
+								startCol: 35
+								endLine: 7
+								endCol: 38
+								mut: true
+								typeQual: size
+						2: 
+							name: data
+							fileName: ct.ct
+							startLine: 7
+							startCol: 41
+							endLine: 7
+							endCol: 83
+							elemType: 
+								fileName: ct.ct
+								startLine: 7
+								startCol: 47
+								endLine: 7
+								endCol: 83
+								mut: true
+								typeQual: ptr
+								elemType: 
+									fileName: ct.ct
+									startLine: 7
+									startCol: 48
+									endLine: 7
+									endCol: 83
+									mut: true
+									typeQual: union
+									fields: 
+										0: 
+											name: null
+											fileName: ct.ct
+											startLine: 7
+											startCol: 49
+											endLine: 7
+											endCol: 56
+											elemType: 
+												fileName: ct.ct
+												startLine: 7
+												startCol: 55
+												endLine: 7
+												endCol: 56
+												mut: true
+												typeQual: unit
+										1: 
+											name: val
+											fileName: ct.ct
+											startLine: 7
+											startCol: 59
+											endLine: 7
+											endCol: 69
+											elemType: 
+												fileName: ct.ct
+												startLine: 7
+												startCol: 64
+												endLine: 7
+												endCol: 69
+												mut: true
+												typeQual: vla
+												elemType: 
+													name: a
+													fileName: ct.ct
+													startLine: 7
+													startCol: 69
+													endLine: 7
+													endCol: 69
+													mut: true
+													typeQual: placehldr
+												lenParam: len
+										2: 
+											name: mem
+											fileName: ct.ct
+											startLine: 7
+											startCol: 72
+											endLine: 7
+											endCol: 82
+											elemType: 
+												fileName: ct.ct
+												startLine: 7
+												startCol: 77
+												endLine: 7
+												endCol: 82
+												mut: true
+												typeQual: vla
+												elemType: 
+													name: a
+													fileName: ct.ct
+													startLine: 7
+													startCol: 82
+													endLine: 7
+													endCol: 82
+													mut: true
+													typeQual: placehldr
+												lenParam: cap
+				placehldrs: 
+					0: 
+						name: a
+						fileName: ct.ct
+						startLine: 7
+						startCol: 14
+						endLine: 7
+						endCol: 14
+		fnDefs: 
+			0: 
+				name: New
+				fileName: ct.ct
+				startLine: 9
+				startCol: 5
+				endLine: 17
+				endCol: 5
+				typeSpec: 
+					fileName: ct.ct
+					startLine: 9
+					startCol: 22
+					endLine: 12
+					endCol: 24
+					mut: true
+					typeQual: func
+					argType: 
+						fileName: ct.ct
+						startLine: 9
+						startCol: 22
+						endLine: 9
+						endCol: 49
+						mut: true
+						typeQual: struct
+						fields: 
+							0: 
+								name: cap
+								fileName: ct.ct
+								startLine: 9
+								startCol: 23
+								endLine: 9
+								endCol: 31
+								elemType: 
+									fileName: ct.ct
+									startLine: 9
+									startCol: 28
+									endLine: 9
+									endCol: 31
+									mut: true
+									typeQual: size
+							1: 
+								name: ctor
+								fileName: ct.ct
+								startLine: 9
+								startCol: 34
+								endLine: 9
+								endCol: 48
+								elemType: 
+									fileName: ct.ct
+									startLine: 9
+									startCol: 40
+									endLine: 9
+									endCol: 48
+									mut: true
+									typeQual: func
+									argType: 
+										fileName: ct.ct
+										startLine: 9
+										startCol: 40
+										endLine: 9
+										endCol: 41
+										mut: true
+										typeQual: unit
+									retType: 
+										name: b
+										fileName: ct.ct
+										startLine: 9
+										startCol: 46
+										endLine: 9
+										endCol: 48
+										mut: true
+										typeQual: paramForParam
+					retType: 
+						fileName: ct.ct
+						startLine: 9
+						startCol: 54
+						endLine: 12
+						endCol: 24
+						mut: true
+						typeQual: union
+						fields: 
+							0: 
+								name: res
+								fileName: ct.ct
+								startLine: 10
+								startCol: 26
+								endLine: 10
+								endCol: 41
+								elemType: 
+									libName: vec
+									fileName: ct.ct
+									startLine: 10
+									startCol: 31
+									endLine: 10
+									endCol: 41
+									mut: true
+									typeQual: typeDef
+									typeName: vec
+									typeAnnot: 
+										0: 
+											name: a
+											fileName: ct.ct
+											startLine: 10
+											startCol: 39
+											endLine: 10
+											endCol: 40
+											mut: true
+											typeQual: param
+							1: 
+								name: outOfMemory
+								fileName: ct.ct
+								startLine: 11
+								startCol: 26
+								endLine: 11
+								endCol: 40
+								elemType: 
+									fileName: ct.ct
+									startLine: 11
+									startCol: 39
+									endLine: 11
+									endCol: 40
+									mut: true
+									typeQual: unit
+				stmts: 
+					0: 
+						name: res
+						value: 
+							fileName: ct.ct
+							startLine: 14
+							startCol: 27
+							endLine: 14
+							endCol: 77
+							prim: 
+								fileName: ct.ct
+								startLine: 14
+								startCol: 27
+								endLine: 14
+								endCol: 76
+								primType: struct_ctor
+								initers: 
+									0: 
+										fileName: ct.ct
+										startLine: 14
+										startCol: 28
+										endLine: 14
+										endCol: 36
+										arrow: 
+											0: 
+												fileName: ct.ct
+												startLine: 14
+												startCol: 33
+												endLine: 14
+												endCol: 34
+												arrowType: move
+										designator: 
+											0: 
+												name: len
+												fileName: ct.ct
+												startLine: 14
+												startCol: 28
+												endLine: 14
+												endCol: 31
+												operType: field_select
+										rvalue: 
+											fileName: ct.ct
+											startLine: 14
+											startCol: 36
+											endLine: 14
+											endCol: 36
+											prim: 
+												value: 0
+												fileName: ct.ct
+												startLine: 14
+												startCol: 36
+												endLine: 14
+												endCol: 36
+												primType: uint_const
+											opers: 
+									1: 
+										fileName: ct.ct
+										startLine: 14
+										startCol: 39
+										endLine: 14
+										endCol: 49
+										arrow: 
+											0: 
+												fileName: ct.ct
+												startLine: 14
+												startCol: 44
+												endLine: 14
+												endCol: 45
+												arrowType: move
+										designator: 
+											0: 
+												name: cap
+												fileName: ct.ct
+												startLine: 14
+												startCol: 39
+												endLine: 14
+												endCol: 42
+												operType: field_select
+										rvalue: 
+											fileName: ct.ct
+											startLine: 14
+											startCol: 47
+											endLine: 14
+											endCol: 49
+											prim: 
+												name: cap
+												fileName: ct.ct
+												startLine: 14
+												startCol: 47
+												endLine: 14
+												endCol: 49
+												primType: local_access
+											opers: 
+									2: 
+										fileName: ct.ct
+										startLine: 14
+										startCol: 52
+										endLine: 14
+										endCol: 75
+										arrow: 
+											0: 
+												fileName: ct.ct
+												startLine: 14
+												startCol: 58
+												endLine: 14
+												endCol: 59
+												arrowType: move
+										designator: 
+											0: 
+												name: data
+												fileName: ct.ct
+												startLine: 14
+												startCol: 52
+												endLine: 14
+												endCol: 56
+												operType: field_select
+										rvalue: 
+											fileName: ct.ct
+											startLine: 14
+											startCol: 61
+											endLine: 14
+											endCol: 75
+											prim: 
+												fileName: ct.ct
+												startLine: 14
+												startCol: 61
+												endLine: 14
+												endCol: 73
+												primType: union_ctor
+												initers: 
+													0: 
+														fileName: ct.ct
+														startLine: 14
+														startCol: 62
+														endLine: 14
+														endCol: 72
+														arrow: 
+															0: 
+																fileName: ct.ct
+																startLine: 14
+																startCol: 68
+																endLine: 14
+																endCol: 69
+																arrowType: move
+														designator: 
+															0: 
+																name: null
+																fileName: ct.ct
+																startLine: 14
+																startCol: 62
+																endLine: 14
+																endCol: 66
+																operType: field_select
+														rvalue: 
+															fileName: ct.ct
+															startLine: 14
+															startCol: 71
+															endLine: 14
+															endCol: 72
+															prim: 
+																fileName: ct.ct
+																startLine: 14
+																startCol: 71
+																endLine: 14
+																endCol: 72
+																primType: unit_const
+															opers: 
+											opers: 
+												0: 
+													fileName: ct.ct
+													startLine: 14
+													startCol: 74
+													endLine: 14
+													endCol: 74
+													operType: handle
+												1: 
+													fileName: ct.ct
+													startLine: 14
+													startCol: 75
+													endLine: 14
+													endCol: 75
+													operType: get_ptr
+							opers: 
+								0: 
+									fileName: ct.ct
+									startLine: 14
+									startCol: 77
+									endLine: 14
+									endCol: 77
+									operType: handle
+						fileName: ct.ct
+						startLine: 14
+						startCol: 3
+						endLine: 14
+						endCol: 77
+						typeSpec: 
+							libName: vec
+							fileName: ct.ct
+							startLine: 14
+							startCol: 12
+							endLine: 14
+							endCol: 22
+							mut: true
+							typeQual: typeDef
+							typeName: vec
+							typeAnnot: 
+								0: 
+									name: a
+									fileName: ct.ct
+									startLine: 14
+									startCol: 20
+									endLine: 14
+									endCol: 21
+									mut: true
+									typeQual: param
+						stmtType: local_var_def
+						arrow: 
+							0: 
+								fileName: ct.ct
+								startLine: 14
+								startCol: 24
+								endLine: 14
+								endCol: 25
+								arrowType: move
+					1: 
+						value: 
+							fileName: ct.ct
+							startLine: 15
+							startCol: 3
+							endLine: 15
+							endCol: 12
+							prim: 
+								name: ctor
+								fileName: ct.ct
+								startLine: 15
+								startCol: 3
+								endLine: 15
+								endCol: 6
+								primType: local_access
+							opers: 
+								0: 
+									arg: 
+										fileName: ct.ct
+										startLine: 15
+										startCol: 11
+										endLine: 15
+										endCol: 12
+										mut: true
+										typeQual: unit
+									fileName: ct.ct
+									startLine: 15
+									startCol: 7
+									endLine: 15
+									endCol: 12
+									typeAnnot: 
+										0: 
+											name: a
+											fileName: ct.ct
+											startLine: 15
+											startCol: 8
+											endLine: 15
+											endCol: 9
+											mut: true
+											typeQual: param
+									operType: fn_call
+						fileName: ct.ct
+						startLine: 15
+						startCol: 3
+						endLine: 15
+						endCol: 12
+						stmtType: expr_stmt
+					2: 
+						fileName: ct.ct
+						startLine: 16
+						startCol: 3
+						endLine: 16
+						endCol: 13
+						stmtType: res_stmt
+						arrow: 
+							0: 
+								fileName: ct.ct
+								startLine: 16
+								startCol: 8
+								endLine: 16
+								endCol: 9
+								arrowType: move
+						designator: 
+							0: 
+								name: res
+								fileName: ct.ct
+								startLine: 16
+								startCol: 3
+								endLine: 16
+								endCol: 6
+								operType: field_select
+						rvalue: 
+							fileName: ct.ct
+							startLine: 16
+							startCol: 11
+							endLine: 16
+							endCol: 13
+							prim: 
+								name: res
+								fileName: ct.ct
+								startLine: 16
+								startCol: 11
+								endLine: 16
+								endCol: 13
+								primType: local_access
+							opers: 
+				params: 
+					0: 
+						name: a
+						fileName: ct.ct
+						startLine: 9
+						startCol: 12
+						endLine: 9
+						endCol: 13
+				paramsForParam: 
+					0: 
+						name: b
+						fileName: ct.ct
+						startLine: 9
+						startCol: 16
+						endLine: 9
+						endCol: 18
+		varDefs: 
+			0: 
+				name: PI
+				value: 
+					fileName: ct.ct
+					startLine: 19
+					startCol: 18
+					endLine: 19
+					endCol: 23
+					prim: 
+						value: [3,.,1,4,1,5]
+						fileName: ct.ct
+						startLine: 19
+						startCol: 18
+						endLine: 19
+						endCol: 23
+						primType: float_const
+					opers: 
+				fileName: ct.ct
+				startLine: 19
+				startCol: 2
+				endLine: 19
+				endCol: 23
+				typeSpec: 
+					fileName: ct.ct
+					startLine: 19
+					startCol: 10
+					endLine: 19
+					endCol: 13
+					mut: false
+					typeQual: f32
